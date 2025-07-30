@@ -1,0 +1,67 @@
+#  Step 1: Import Libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set(style="darkgrid")
+
+# Step 2: Load the Dataset
+df = pd.read_csv("/content/Unemployment in India.csv")
+
+#  Step 3: Explore the Dataset
+print("First 5 rows:\n", df.head())
+print("\nColumn Names:\n", df.columns)
+print("\nData Info:\n")
+print(df.info())
+print("\nMissing values:\n", df.isnull().sum())
+
+# Step 4: Rename Columns for Simplicity
+df.columns = ['States', 'Date', 'Frequency', 'Estimated Unemployment Rate',
+              'Estimated Employed', 'Estimated Labour Participation Rate', 'Region']
+
+# Step 5: Convert 'Date' Column to Datetime Format
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Step 6: Plot Unemployment Rate Over Time
+plt.figure(figsize=(12, 6))
+sns.lineplot(x='Date', y='Estimated Unemployment Rate', data=df, estimator='mean')
+plt.title('India: Average Unemployment Rate Over Time')
+plt.xlabel('Date')
+plt.ylabel('Unemployment Rate (%)')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Step 7: Latest State-wise Unemployment Comparison
+latest_date = df['Date'].max()
+latest_df = df[df['Date'] == latest_date]
+
+plt.figure(figsize=(14, 7))
+sns.barplot(x='Estimated Unemployment Rate', y='States',
+            data=latest_df.sort_values(by='Estimated Unemployment Rate', ascending=False),
+            palette='coolwarm')
+plt.title(f'Unemployment Rate by State - {latest_date.date()}')
+plt.xlabel('Unemployment Rate (%)')
+plt.ylabel('State')
+plt.tight_layout()
+plt.show()
+
+# Step 8: Analyze COVID-19 Impact
+pre_covid = df[df['Date'] < '2020-03-01']['Estimated Unemployment Rate'].mean()
+post_covid = df[df['Date'] >= '2020-03-01']['Estimated Unemployment Rate'].mean()
+
+print(f"Pre-COVID Avg Unemployment Rate: {pre_covid:.2f}%")
+print(f"Post-COVID Avg Unemployment Rate: {post_covid:.2f}%")
+
+# Step 9: Monthly Seasonal Trend
+df['Month'] = df['Date'].dt.month
+monthly_avg = df.groupby('Month')['Estimated Unemployment Rate'].mean()
+
+plt.figure(figsize=(10, 5))
+monthly_avg.plot(kind='bar', color='skyblue')
+plt.title('Average Unemployment Rate by Month (All India)')
+plt.xlabel('Month')
+plt.ylabel('Unemployment Rate (%)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
